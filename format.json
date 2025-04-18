@@ -1,0 +1,452 @@
+[
+    {
+      "field": "timeStamp",
+      "type": "LONG",
+      "meaning": "时间戳，unix时间",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": ""
+    },
+    {
+      "field": "serviceUsage",
+      "type": "STRING",
+      "meaning": "应用/服务使用数据（CorrelateServiceUsageBean）",
+      "alias": "",
+      "tags": ["字段间用逗号分割，字段内逗号替换为#"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "packageName:包名; moduleName:模块名; activityName:activity名; isAd:是否广告; pageName:page名; sectionName:section名; positionIndex:位置索引; abTeststrategy:AB测试策略; pages:页面哈希值; isHarmonyApp:是否鸿蒙App; isMainApp:是否主App; duration:使用时长; serviceSource:服务来源; formName:卡片名; formType:卡片规格; abilityId:云侧服务abilityId; templateFAAbilityType:模板卡片FA类型; virtualSelfOwnedAbilityInfo:虚拟服务假四件套信息; serviceId:serviceId"
+    },
+    {
+      "field": "serviceExposure",
+      "type": "STRING",
+      "meaning": "应用/服务曝光列表",
+      "alias": "",
+      "tags": ["字段间用逗号分割，字段内逗号替换为#"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "packageName:包名; moduleName:模块名; abilityName:ability名; isAd:是否广告; pageName:page名; sectionName:section名; positionIndex:位置索引; abTeststrategy:AB测试策略; formName:卡片名; formType:卡片规格; serviceType:服务类型; serviceId:serviceId; contentId:内容Id; versionCode:版本号; contentjson:召回内容; hwChannelId:HW渠道Id; sources:服务来源; cardViewType:卡片视图类型; intentName:意图名; intentRelatedService:意图相关服务名; isFlowControl:是否流控; abilityId:云侧服务abilityId; templateFAAbilityType:模板卡片FA类型; virtualSelfOwnedAbilityInfo:虚拟服务假四件套信息"
+    },
+    {
+      "field": "serviceSource",
+      "type": "INT",
+      "meaning": "应用/服务使用来源",
+      "alias": "",
+      "tags": ["枚举值"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "0:AMS; 1:小艺建议点击; 2:服务中心; 4:小艺建议刷新; 5:FMS; 6:语音捐赠; 7:JIKE poi数据; 8:AbilityKit捐赠曝光数据; 9:AbilityKit捐赠用户操作数据"
+    },
+    {
+      "field": "motionState",
+      "type": "STRING",
+      "meaning": "运动状态",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: walking"
+    },
+    {
+      "field": "sceneIds",
+      "type": "ARRAY<STRING>",
+      "meaning": "当前场景id列表（来自DS捐赠）",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: [\"1618806512000\", \"1615366304332\"]"
+    },
+    {
+      "field": "connectedDeviceList",
+      "type": "ARRAY<STRING>",
+      "meaning": "当前连接的设备列表",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: [\"00A\", \"011\"]"
+    },
+    {
+      "field": "wifiEnableState",
+      "type": "STRING",
+      "meaning": "Wifi开关状态",
+      "alias": "",
+      "tags": ["需权限: android.permission.ACCESS_WIFI_STATE"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "1:开启; 0:关闭"
+    },
+    {
+      "field": "wifiConnectedState",
+      "type": "STRING",
+      "meaning": "Wifi连接状态",
+      "alias": "",
+      "tags": ["需权限: android.permission.ACCESS_WIFI_STATE"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "1:已连接; 0:未连接"
+    },
+    {
+      "field": "bluetoothEnableState",
+      "type": "STRING",
+      "meaning": "蓝牙开关状态",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "1:开启; 0:关闭"
+    },
+    {
+      "field": "bluetoothConnectedState",
+      "type": "STRING",
+      "meaning": "蓝牙连接状态",
+      "alias": "",
+      "tags": ["需权限: android.permission.BLUETOOTH"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "1:已连接; 0:未连接"
+    },
+    {
+      "field": "powerConnectedState",
+      "type": "STRING",
+      "meaning": "电源连接状态",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "1:已连接; 0:未连接"
+    },
+    {
+      "field": "semanticPlace",
+      "type": "STRING",
+      "meaning": "地点语义（如家、公司）",
+      "alias": "",
+      "tags": ["需权限: 位置权限"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: home"
+    },
+    {
+      "field": "longitude",
+      "type": "DOUBLE",
+      "meaning": "经度（小数点后2位）",
+      "alias": "",
+      "tags": ["需权限: 位置权限"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 121.62"
+    },
+    {
+      "field": "latitude",
+      "type": "DOUBLE",
+      "meaning": "纬度（小数点后2位）",
+      "alias": "",
+      "tags": ["需权限: 位置权限"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 31.26"
+    },
+    {
+      "field": "geodeticSystem",
+      "type": "STRING",
+      "meaning": "位置坐标系类型（如GCJ02）",
+      "alias": "",
+      "tags": ["需权限: 位置权限"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: GCJ02"
+    },
+    {
+      "field": "altitude",
+      "type": "DOUBLE",
+      "meaning": "海拔",
+      "alias": "",
+      "tags": ["需权限: 位置权限"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 0.0"
+    },
+    {
+      "field": "country",
+      "type": "STRING",
+      "meaning": "国家二字码",
+      "alias": "",
+      "tags": ["需权限: 位置权限"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: CN"
+    },
+    {
+      "field": "province",
+      "type": "STRING",
+      "meaning": "省份",
+      "alias": "",
+      "tags": ["需权限: 位置权限"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 上海"
+    },
+    {
+      "field": "city",
+      "type": "STRING",
+      "meaning": "城市",
+      "alias": "",
+      "tags": ["需权限: 位置权限"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 上海"
+    },
+    {
+      "field": "district",
+      "type": "STRING",
+      "meaning": "区县",
+      "alias": "",
+      "tags": ["需权限: 位置权限"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 浦东新区"
+    },
+    {
+      "field": "cellId",
+      "type": "STRING",
+      "meaning": "基站Id",
+      "alias": "",
+      "tags": ["需权限: android.permission.READ_PHONE_STATE"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 13424350949"
+    },
+    {
+      "field": "cellMCC",
+      "type": "STRING",
+      "meaning": "基站MCC",
+      "alias": "",
+      "tags": ["需权限: android.permission.READ_PHONE_STATE"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 460"
+    },
+    {
+      "field": "cellMNC",
+      "type": "STRING",
+      "meaning": "基站MNC",
+      "alias": "",
+      "tags": ["需权限: android.permission.READ_PHONE_STATE"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 00"
+    },
+    {
+      "field": "cellLAC",
+      "type": "STRING",
+      "meaning": "基站LAC",
+      "alias": "",
+      "tags": ["需权限: android.permission.READ_PHONE_STATE"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 1448131"
+    },
+    {
+      "field": "cellRSSI",
+      "type": "STRING",
+      "meaning": "基站RSSI",
+      "alias": "",
+      "tags": ["需权限: android.permission.READ_PHONE_STATE"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: -95"
+    },
+    {
+      "field": "wifiBSSID",
+      "type": "STRING",
+      "meaning": "Wifi的BSSID",
+      "alias": "",
+      "tags": ["需权限: android.permission.ACCESS_WIFI_STATE"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: ee:e0:e6:f3:91:8f"
+    },
+    {
+      "field": "wifiLevel",
+      "type": "STRING",
+      "meaning": "Wifi强度",
+      "alias": "",
+      "tags": ["需权限: android.permission.ACCESS_WIFI_STATE"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: -26"
+    },
+    {
+      "field": "unionPreServiceUsages",
+      "type": "ARRAY<STRING>",
+      "meaning": "前0~5分钟内的应用/服务使用记录列表",
+      "alias": "",
+      "tags": ["仅包含AMS/FMS数据"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "字段顺序与serviceUsage一致，按时间升序排列"
+    },
+    {
+      "field": "unionPostServiceUsages",
+      "type": "ARRAY<STRING>",
+      "meaning": "前5~20分钟内的应用/服务使用记录列表",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "参考unionPreServiceUsages"
+    },
+    {
+      "field": "unionFutureServiceUsages",
+      "type": "ARRAY<STRING>",
+      "meaning": "后10分钟内的应用/服务使用记录列表",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "参考unionPreServiceUsages"
+    },
+    {
+      "field": "sessionId",
+      "type": "STRING",
+      "meaning": "App生命周期标识（UUID生成）",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: c0d3da53-12d6-48ea-8f25-5c6d166807dd"
+    },
+    {
+      "field": "traceId",
+      "type": "STRING",
+      "meaning": "小艺建议请求唯一标识符",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: c0d3da53-12d6-48ea-8f25-5c6d166807dd"
+    },
+    {
+      "field": "recallReason",
+      "type": "STRING",
+      "meaning": "召回原因（小艺建议捐赠）",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": ""
+    },
+    {
+      "field": "recId",
+      "type": "STRING",
+      "meaning": "全流程刷新唯一标识",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: c0d3da53-12d6-48ea-8f25-5c6d166807dd"
+    },
+    {
+      "field": "recallServiceMap",
+      "type": "MAP<STRING, ARRAY<STRING>>",
+      "meaning": "各路召回服务的TopK服务列表",
+      "alias": "",
+      "tags": ["小艺建议捐赠"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "key包含: routine、最近使用、云侧模型等; value字段包括: packageName, moduleName, activityName, formType, formName, contentId, score, serviceId"
+    },
+    {
+      "field": "refreshResult",
+      "type": "MAP<STRING, ARRAY<STRING>>",
+      "meaning": "服务刷新列表（小艺建议捐赠）",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "key为卡片尺寸，value参考serviceExposure字段"
+    },
+    {
+      "field": "dislikeService",
+      "type": "ARRAY<STRING>",
+      "meaning": "不喜欢服务列表（小艺建议捐赠）",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "字段包括: PackageName, ModuleName, ActivityName, FormName, FormType, DislikeTags"
+    },
+    {
+      "field": "poiInfo",
+      "type": "ARRAY<STRING>",
+      "meaning": "及刻POI数据",
+      "alias": "",
+      "tags": ["需权限: android.permission.ACCESS_FINE_LOCATION"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: 分类id#品牌名"
+    },
+    {
+      "field": "voiceIntents or adsVisitInfo",
+      "type": "STRING",
+      "meaning": "语音意图数据或广告数据（未实际使用）",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": ""
+    },
+    {
+      "field": "sharedIntentData",
+      "type": "ARRAY<STRING>",
+      "meaning": "意图框架数据",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "字段包括: packageName, intentName, timestamp"
+    },
+    {
+      "field": "hwPoiInfo",
+      "type": "ARRAY<ARRAY<STRING>>",
+      "meaning": "华为POI数据",
+      "alias": "",
+      "tags": ["需权限: android.permission.ACCESS_FINE_LOCATION"],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: [[华为POI编码, 品牌Id, businessTypeCode]]"
+    },
+    {
+      "field": "dsIntents",
+      "type": "STRING",
+      "meaning": "DS意图标签数据（TOP4意图与打分）",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "示例: id1_3,score1,id2_3,score2..."
+    },
+    {
+      "field": "personalWorkDay",
+      "type": "INT",
+      "meaning": "是否为工作日",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "1:工作日; 0:非工作日; -1:未获取到"
+    },
+    {
+      "field": "residence",
+      "type": "INT",
+      "meaning": "是否为常驻地",
+      "alias": "",
+      "tags": [],
+      "schema": "[]",
+      "encrypted": "false",
+      "dataFormat": "1:常驻地; 0:非常驻地; -1:未获取到"
+    }
+  ]
