@@ -1,21 +1,66 @@
 import pandas as pd
 import json
 
-# 读取字段定义表
-df_meta = pd.read_excel("content字段含义.xlsx", sheet_name="Sheet1", header=0)
-#构建字段名称表
-ziduan_name = {
-    int(k): v for k, v in zip(df_meta["顺序"], df_meta["字段名（columns）"]) 
-    if pd.notna(k) and pd.notna(v)
-}
+# # 读取字段定义表
+# df_meta = pd.read_excel("content字段含义.xlsx", sheet_name="Sheet1", header=0)
+
+# #构建字段名称表
+# ziduan_name = {
+#     int(k): v for k, v in zip(df_meta["顺序"], df_meta["字段名（columns）"]) 
+#     if pd.notna(k) and pd.notna(v)
+# }
+ziduan_name = {1: 'timeStamp', 2: 'serviceUsage', 3: 'serviceExposure', 4: 'serviceSource', 5: 'motionState', 6: 'sceneIds', 7: 'connectedDeviceList', 8: 'wifiEnableState', 9: 'wifiConnectedState', 10: 'bluetoothEnableState', 11: 'bluetoothConnectedState', 12: 'powerConnectedState', 13: 'semanticPlace', 14: 'longitude', 15: 'latitude', 16: 'geodeticSystem', 17: 'altitude', 18: 'country', 19: 'province', 20: 'city', 21: 'district', 22: 'cellId', 23: 'cellMCC', 24: 'cellMNC', 25: 'cellLAC', 26: 'cellRSSI', 27: 'wifiBSSID', 28: 'wifiLevel', 29: 'unionPreServiceUsages', 30: 'unionPostServiceUsages', 31: 'unionFutureServiceUsages', 32: 'sessionId', 33: 'traceId', 34: 'recallReason', 35: 'recId', 36: 'recallServiceMap', 37: 'refreshResult', 38: 'dislikeService', 39: 'poiInfo', 40: 'voiceIntents or adsVisitInfo', 41: 'sharedIntentData', 42: 'hwPoiInfo', 43: 'dsIntents', 44: 'personalWorkDay', 45: 'residence'}
+
+#构建serviceusage名称表
+content="""packageName:包名
+moduleName:模块名，FA必选
+activityName:activity名
+isAd:是否广告，0非广告
+pageName:page名
+sectionName:section名
+positionIndex:位置索引
+abTeststrategy:ab测试策略
+pages:页面，Json数组字串(取sha256 hash的前16位)
+isHarmonyApp:是否鸿蒙App
+isMainApp:是否主App
+duration:使用时长
+serviceSource:服务来源，0:AMS，5:FMS
+formName:卡片名，FA必选
+formType:卡片规格
+timestamp:时间戳
+intentName:意图名
+intentRelatedService:意图相关服务名
+isFlowControl:是否流控，默认为0，不参与流控
+serviceType:服务类型（当前仅serviceType=9模板卡片有意图名）
+abilityId:云侧服务abilityId
+templateFAAbilityType:模板卡片FA云侧召回ability类型，仅serviceType=9时有效
+virtualSelfOwnedAbilityInfo:虚拟自有服务假四件套信息
+serviceId:APP类型为包名，上云可省略
+"""
+# 提取冒号前部分
+serviceusage_name = [line.split(":", 1)[0].strip() for line in content.strip().split("\n") if ":" in line]
+
 
 def convert_pipe_to_json(input_str):
     # 按'|'分割字符串
     parts = input_str.split('|')
     # 创建键值对字典，键从1开始递增
     result = {ziduan_name[i]: part for i, part in enumerate(parts, start=1)}
+    result["unionPreServiceUsages"] = Serviceusage(result["unionPreServiceUsages"])
+    result["unionPostServiceUsages"] = Serviceusage(result["unionPostServiceUsages"])
+    result["unionFutureServiceUsages"] = Serviceusage(result["unionFutureServiceUsages"])
     # 转换为JSON并返回格式化结果
     return json.dumps(result, ensure_ascii=False, indent=2)
+
+def Serviceusage(input_str):
+    # 按','分割字符串
+    parts = input_str.split(',')
+    # 取两者中较小的长度，避免索引越界
+    min_length = min(len(parts), len(serviceusage_name))
+    # 创建键值对字典，键从1开始递增
+    result = {serviceusage_name[i]: parts[i] for i in range(min_length)}
+    # 转换为JSON并返回格式化结果
+    return result
 
 input_string1 = """
 1737959472228|com.tencent.mm,,,0,,,,,["e2779edcad74791b"],0,1,4967,0,,1*1,1737959472228,,,0,2,,-1,,com.tencent.mm,|["com.tdx.AndroidMSZQ,,,0,,,,,,1*1,2,,,,,,[],0,,,0,,-1,,","com.tencent.mm,,,0,,,,,,1*1,2,,,,,,[],0,,,0,,-1,,","com.kmxs.reader,,,1,,,,,,1*1,2,,,,,,[],0,,,0,,-1,,","com.tencent.weworklocal,,,0,,,,,,1*1,2,,,,,,[],0,,,0,,-1,,"]|1||||1|1|1|1|0||||GCJ02||CN||||||||||-44|[]|["com.tencent.mm,,,,,,,,[\"4980c11f1485cc54\"#\"e2779edcad74791b\"#\"2adec9d3275f324e\"],0,1,354263,0,,,1737958890629,,,0,0,,-1,,null,"]|["com.tdx.AndroidMSZQ,,,0,,,,,[\"18fabb1ccc22dd32\"],0,1,40706,0,,1*1,1737959488433,,,0,2,,-1,,com.tdx.AndroidMSZQ,","com.tencent.mm,,,0,,,,,[\"e2779edcad74791b\"#\"4980c11f1485cc54\"],0,1,72445,0,,1*1,1737959530897,,,0,2,,-1,,com.tencent.mm,","com.tencent.mm,,,0,,,,,[\"4980c11f1485cc54\"#\"bfcad5f6a285c715\"],0,1,76908,0,,1*1,1737959697860,,,0,2,,-1,,com.tencent.mm,","com.tencent.mm,,,,,,,,[\"4980c11f1485cc54\"],0,1,32883,0,,,1737959898653,,,0,0,,-1,,null,","com.tencent.mm,,,,,,,,[\"4980c11f1485cc54\"#\"e2779edcad74791b\"],0,1,99825,0,,,1737959946968,,,0,0,,-1,,null,","com.tencent.mm,,,,,,,,[\"e2779edcad74791b\"#\"4980c11f1485cc54\"#\"956e03df4566fc36\"],0,1,26385,0,,,1737960045851,,,0,0,,-1,,null,"]|45b3cb4236e643cdb8366b1a343d24a7|||082cb6d3-4e36-4fac-b9d5-d97cb89b9bfe|{"routine":["com.tencent.mm,,,1*1,,,0.2439,,2","com.kmxs.reader,,,1*1,,,0.6,,2","com.tencent.mm,,,1*1,,,0.43,,2","com.tdx.AndroidMSZQ,,,1*1,,,0.1,,2","com.eg.android.AlipayGphone,,,1*1,,,0.1,,2","com.tencent.weworklocal,,,1*1,,,0.1,,2"],"recentlyUsed":["com.tencent.mm,,,1*1,,,0,,2","com.kmxs.reader,,,1*1,,,1,,2","com.ss.android.ugc.aweme.lite,,,1*1,,,2,,2","com.tencent.weworklocal,,,1*1,,,3,,2","com.android.mms,,,1*1,,,4,,2","com.tdx.AndroidMSZQ,,,1*1,,,5,,2","com.huawei.camera,,,1*1,,,6,,2","com.huawei.health,,,1*1,,,7,,2"]}|{"2*2":["com.tdx.AndroidMSZQ,,,0,,,,,,1*1,2,,,,,,[],0,,,0,,-1,,","com.tencent.weworklocal,,,0,,,,,,1*1,2,,,,,,[],0,,,0,,-1,,","com.kmxs.reader,,,1,,,,,,1*1,2,,,,,,[],0,,,0,,-1,,","com.tencent.mm,,,0,,,,,,1*1,2,,,,,,[],0,,,0,,-1,,"]}|[]|||[]||1001101330010000,1.000000,1004100530010000,0.677257,1003100300000000,0.173156,1004100730030000,0.124852|1|1
@@ -30,4 +75,4 @@ input_string3 = """
 """
 
 # 转换并输出结果
-print(convert_pipe_to_json(input_string1))
+print(convert_pipe_to_json(input_string3))
