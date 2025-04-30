@@ -5,10 +5,10 @@ import json
 # 读取 Excel 文件获得poi字典
 # df = pd.read_excel("data.xlsx", engine="openpyxl")
 
+# 包名转换字典
 
 
-
-# 示例数据映射（需根据实际数据补充）
+# POI映射（需根据实际数据补充）
 poi_mapping = {
     "1101000000": "加油站",
     "0601000000": "医院",
