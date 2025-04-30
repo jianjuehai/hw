@@ -1,0 +1,6 @@
+
+用户在2025-01-26 12:02:40正在使用com.tencent.qqmusic，持续时间32.734秒，此时POI信息是：未知位置。
+Wifi已连接，蓝牙已连接，运动状态：still。在该时刻前后的服务使用记录如下：
+在2025-01-26 11:58:09时使用com.doudoubird.calculation持续15.941秒，在2025-01-26 12:00:36时使用com.doudoubird.calculation持续5.727秒，在2025-01-26 12:00:43时使用com.huawei.contacts持续1.418秒，在2025-01-26 12:00:45时使用com.android.incallui持续25.269秒，在2025-01-26 12:01:10时使用com.huawei.contacts持续27.072秒，在2025-01-26 12:01:39时使用com.huawei.contacts持续2.455秒，在2025-01-26 12:01:42时使用com.android.incallui持续45.931秒，在2025-01-26 11:50:20时使用com.android.incallui持续353.441秒，在2025-01-26 11:56:14时使用com.tencent.qqmusic持续2.377秒，在2025-01-26 11:56:19时使用com.tencent.qqmusic持续3.574秒，在2025-01-26 11:56:27时使用com.doudoubird.calculation持续94.936秒。
+使用com.doudoubird.calculation共116.604秒，期间交互3次；使用com.huawei.contacts共30.945秒，期间交互3次；使用com.android.incallui共424.641秒，期间交互3次；使用com.tencent.qqmusic共5.951秒，期间交互2次。
+=====================================================

@@ -75,4 +75,5 @@ input_string3 = """
 """
 
 # 转换并输出结果
-print(convert_pipe_to_json(input_string3))
+result = (convert_pipe_to_json(input_string3))
+
