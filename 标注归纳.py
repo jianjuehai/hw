@@ -1,3 +1,40 @@
+from sentence_transformers import SentenceTransformer
+from sklearn.cluster import DBSCAN
+import pandas as pd
+from collections import defaultdict
+
+class PreClusterer:
+    def __init__(self):
+        self.model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+        
+    def pre_cluster_all_labels(self, all_labels):
+        """对所有标注进行预聚类，解决不同批次相同标注的问题"""
+        # 1. 去重并统计频次
+        label_counts = pd.Series(all_labels).value_counts()
+        unique_labels = label_counts.index.tolist()
+        
+        # 2. embedding + 聚类
+        embeddings = self.model.encode(unique_labels)
+        
+        # 3. DBSCAN聚类（自动确定聚类数）
+        clustering = DBSCAN(eps=0.3, min_samples=2, metric='cosine')
+        clusters = clustering.fit_predict(embeddings)
+        
+        # 4. 构建预聚类结果
+        pre_clusters = defaultdict(list)
+        for i, cluster_id in enumerate(clusters):
+            if cluster_id != -1:  # 不是噪声点
+                representative = self._select_representative(
+                    unique_labels[i], label_counts[unique_labels[i]]
+                )
+                pre_clusters[cluster_id].append({
+                    'label': unique_labels[i],
+                    'count': label_counts[unique_labels[i]],
+                    'representative': representative
+                })
+        
+        return pre_clusters
+
 # 标注归并LLM Prompts
 
 ## 1. 分批处理主Prompt
