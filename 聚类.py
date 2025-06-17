@@ -37,34 +37,73 @@ class LabelClusterer:
     
     def extract_features(self, labels):
         """
-        提取标签特征：使用TF-IDF和字符级n-gram
+        提取标签特征：改进的多层次特征提取
         """
-        # 中文分词
-        segmented_labels = []
-        for label in labels:
-            # 结合字符级和词级特征
-            words = list(jieba.cut(label))
-            chars = list(label)
-            # 组合词级和字符级特征
-            features = words + chars + [label[i:i+2] for i in range(len(label)-1)]
-            segmented_labels.append(' '.join(features))
+        # 多层次特征提取
+        all_features = []
         
-        # TF-IDF向量化
+        for label in labels:
+            features = []
+            
+            # 1. 词级特征 - jieba分词
+            words = list(jieba.cut(label))
+            features.extend(words)
+            
+            # 2. 字符级特征 - 单个字符
+            chars = list(label)
+            features.extend(chars)
+            
+            # 3. 字符n-gram特征
+            for n in range(2, min(4, len(label)+1)):
+                for i in range(len(label)-n+1):
+                    features.append(label[i:i+n])
+            
+            # 4. 词汇语义特征 - 提取关键词
+            # 跑步相关
+            if any(word in label for word in ['跑', '跑步', '晨跑', '夜跑']):
+                features.append('运动_跑步')
+            
+            # 时间相关
+            if any(word in label for word in ['早晨', '早上', '晨', '上午']):
+                features.append('时间_早晨')
+            if any(word in label for word in ['晚上', '夜', '夜晚']):
+                features.append('时间_晚上')
+                
+            # 地点相关
+            if any(word in label for word in ['机场', '候机', '等待', '等候']):
+                features.append('地点_机场')
+            if any(word in label for word in ['商场', '购物', '逛街', '买东西']):
+                features.append('活动_购物')
+            if any(word in label for word in ['电影', '观影', '看电影', '影院']):
+                features.append('活动_观影')
+            if any(word in label for word in ['咖啡', '咖啡厅', '咖啡店']):
+                features.append('地点_咖啡店')
+            if any(word in label for word in ['健身', '运动', '锻炼', '健身房']):
+                features.append('活动_健身')
+            
+            all_features.append(' '.join(features))
+        
+        # TF-IDF向量化，降低min_df以保留更多特征
         vectorizer = TfidfVectorizer(
-            max_features=1000,
+            max_features=2000,
             ngram_range=(1, 2),
-            min_df=1
+            min_df=1,
+            max_df=0.8
         )
         
-        feature_matrix = vectorizer.fit_transform(segmented_labels)
+        feature_matrix = vectorizer.fit_transform(all_features)
         return feature_matrix, vectorizer
     
     def compute_similarity_matrix(self, feature_matrix):
         """
-        计算标签间的余弦相似度矩阵
+        计算标签间的余弦相似度矩阵，加入字符串相似度
         """
-        similarity_matrix = cosine_similarity(feature_matrix)
-        return similarity_matrix
+        # 基础余弦相似度
+        cosine_sim = cosine_similarity(feature_matrix)
+        
+        # 为了演示，我们也可以加入编辑距离等其他相似度度量
+        # 这里先返回余弦相似度
+        return cosine_sim
     
     def cluster_labels(self, labels):
         """
@@ -181,8 +220,8 @@ def demo_usage():
     print(df['场景'].value_counts())
     print("\n" + "="*50 + "\n")
     
-    # 初始化聚类器
-    clusterer = LabelClusterer(similarity_threshold=0.5)
+    # 初始化聚类器 - 调整相似度阈值
+    clusterer = LabelClusterer(similarity_threshold=0.3)  # 降低阈值让更多标签聚类
     
     # 执行聚类
     df_clustered, label_mapping, clusters = clusterer.apply_clustering_to_dataframe(df)
@@ -193,7 +232,7 @@ def demo_usage():
     print("\n" + "="*50 + "\n")
     
     print("标签映射关系:")
-    for original, standardized in label_mapping.items():
+    for original, standardized in sorted(label_mapping.items()):
         if original != standardized:
             print(f"{original} -> {standardized}")
     
@@ -204,6 +243,29 @@ def demo_usage():
         if len(members) > 1:  # 只显示有多个成员的聚类
             representative = clusterer.cluster_representatives[cluster_id]
             print(f"聚类 {i+1} (代表: {representative}): {members}")
+    
+    # 额外调试信息：显示相似度矩阵
+    print("\n" + "="*30 + " 调试信息 " + "="*30)
+    unique_labels = list(set(df['场景'].tolist()))
+    cleaned_labels = clusterer.preprocess_labels(unique_labels)
+    if len(cleaned_labels) > 1:
+        feature_matrix, _ = clusterer.extract_features(cleaned_labels)
+        similarity_matrix = clusterer.compute_similarity_matrix(feature_matrix)
+        
+        print(f"\n相似度矩阵 (阈值: {clusterer.similarity_threshold}):")
+        print("标签索引:", {i: label for i, label in enumerate(cleaned_labels)})
+        
+        # 显示高相似度的标签对
+        high_sim_pairs = []
+        for i in range(len(cleaned_labels)):
+            for j in range(i+1, len(cleaned_labels)):
+                sim = similarity_matrix[i][j]
+                if sim > clusterer.similarity_threshold:
+                    high_sim_pairs.append((cleaned_labels[i], cleaned_labels[j], sim))
+        
+        print("\n高相似度标签对:")
+        for label1, label2, sim in sorted(high_sim_pairs, key=lambda x: x[2], reverse=True):
+            print(f"{label1} <-> {label2}: {sim:.3f}")
     
     return df_clustered, label_mapping, clusters
 
