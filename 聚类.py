@@ -1,151 +1,248 @@
 import pandas as pd
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import AgglomerativeClustering
 import jieba
 import re
-from collections import Counter
+from collections import Counter, defaultdict
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-class LabelClusterer:
-    def __init__(self, similarity_threshold=0.6):
+class ImprovedLabelClusterer:
+    def __init__(self, similarity_threshold=0.4):
         """
-        初始化标签聚类器
-        similarity_threshold: 相似度阈值，用于判断是否为同一类
+        改进的标签聚类器，专门针对中文短文本优化
         """
         self.similarity_threshold = similarity_threshold
         self.label_clusters = {}
         self.cluster_representatives = {}
         
+        # 语义同义词典
+        self.semantic_dict = {
+            # 跑步相关
+            '跑步': ['晨跑', '夜跑', '慢跑', '长跑'],
+            '早晨': ['早上', '上午', '晨'],
+            '晚上': ['夜晚', '夜', '傍晚'],
+            
+            # 机场相关
+            '候机': ['等待', '等候'],
+            '机场': ['航站楼', '候机厅'],
+            
+            # 购物相关
+            '购物': ['逛街', '买东西', 'shopping'],
+            '商场': ['商城', '购物中心', '百货'],
+            
+            # 观影相关
+            '看电影': ['观影', '看片'],
+            '电影院': ['影院', '电影城'],
+            
+            # 咖啡相关
+            '咖啡厅': ['咖啡店', '咖啡馆'],
+            
+            # 健身相关
+            '健身': ['运动', '锻炼', '训练'],
+            '健身房': ['gym'],
+            
+            # 工作相关
+            '上班': ['工作', '办公'],
+        }
+    
     def preprocess_labels(self, labels):
-        """
-        预处理标签：去重、清洗、分词
-        """
-        # 去除重复和空值
+        """预处理标签"""
         unique_labels = list(set([str(label).strip() for label in labels if pd.notna(label) and str(label).strip()]))
-        
-        # 简单清洗：去除特殊字符，保留中文、英文、数字
         cleaned_labels = []
         for label in unique_labels:
             cleaned = re.sub(r'[^\w\s\u4e00-\u9fff]', '', label)
             if cleaned:
                 cleaned_labels.append(cleaned)
-        
         return cleaned_labels
     
-    def extract_features(self, labels):
-        """
-        提取标签特征：改进的多层次特征提取
-        """
-        # 多层次特征提取
-        all_features = []
-        
-        for label in labels:
-            features = []
-            
-            # 1. 词级特征 - jieba分词
-            words = list(jieba.cut(label))
-            features.extend(words)
-            
-            # 2. 字符级特征 - 单个字符
-            chars = list(label)
-            features.extend(chars)
-            
-            # 3. 字符n-gram特征
-            for n in range(2, min(4, len(label)+1)):
-                for i in range(len(label)-n+1):
-                    features.append(label[i:i+n])
-            
-            # 4. 词汇语义特征 - 提取关键词
-            # 跑步相关
-            if any(word in label for word in ['跑', '跑步', '晨跑', '夜跑']):
-                features.append('运动_跑步')
-            
-            # 时间相关
-            if any(word in label for word in ['早晨', '早上', '晨', '上午']):
-                features.append('时间_早晨')
-            if any(word in label for word in ['晚上', '夜', '夜晚']):
-                features.append('时间_晚上')
-                
-            # 地点相关
-            if any(word in label for word in ['机场', '候机', '等待', '等候']):
-                features.append('地点_机场')
-            if any(word in label for word in ['商场', '购物', '逛街', '买东西']):
-                features.append('活动_购物')
-            if any(word in label for word in ['电影', '观影', '看电影', '影院']):
-                features.append('活动_观影')
-            if any(word in label for word in ['咖啡', '咖啡厅', '咖啡店']):
-                features.append('地点_咖啡店')
-            if any(word in label for word in ['健身', '运动', '锻炼', '健身房']):
-                features.append('活动_健身')
-            
-            all_features.append(' '.join(features))
-        
-        # TF-IDF向量化，降低min_df以保留更多特征
-        vectorizer = TfidfVectorizer(
-            max_features=2000,
-            ngram_range=(1, 2),
-            min_df=1,
-            max_df=0.8
-        )
-        
-        feature_matrix = vectorizer.fit_transform(all_features)
-        return feature_matrix, vectorizer
+    def extract_keywords(self, text):
+        """提取文本关键词"""
+        words = list(jieba.cut(text))
+        # 过滤停用词和单字符
+        keywords = [w for w in words if len(w) > 1 or w in '早晚上下中']
+        return keywords
     
-    def compute_similarity_matrix(self, feature_matrix):
-        """
-        计算标签间的余弦相似度矩阵，加入字符串相似度
-        """
-        # 基础余弦相似度
-        cosine_sim = cosine_similarity(feature_matrix)
+    def levenshtein_distance(self, s1, s2):
+        """计算编辑距离"""
+        if len(s1) < len(s2):
+            return self.levenshtein_distance(s2, s1)
         
-        # 为了演示，我们也可以加入编辑距离等其他相似度度量
-        # 这里先返回余弦相似度
-        return cosine_sim
+        if len(s2) == 0:
+            return len(s1)
+        
+        previous_row = list(range(len(s2) + 1))
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+        
+        return previous_row[-1]
+    
+    def char_similarity(self, s1, s2):
+        """基于字符的相似度"""
+        max_len = max(len(s1), len(s2))
+        if max_len == 0:
+            return 1.0
+        edit_dist = self.levenshtein_distance(s1, s2)
+        return 1 - (edit_dist / max_len)
+    
+    def semantic_similarity(self, label1, label2):
+        """语义相似度计算"""
+        words1 = self.extract_keywords(label1)
+        words2 = self.extract_keywords(label2)
+        
+        # 完全匹配
+        if label1 == label2:
+            return 1.0
+        
+        # 检查是否有直接的同义词关系
+        for word1 in words1:
+            for word2 in words2:
+                # 检查同义词典
+                for key, synonyms in self.semantic_dict.items():
+                    if (word1 == key and word2 in synonyms) or \
+                       (word2 == key and word1 in synonyms) or \
+                       (word1 in synonyms and word2 in synonyms):
+                        return 0.8
+                
+                # 检查包含关系
+                if word1 in word2 or word2 in word1:
+                    return 0.7
+        
+        # 计算词汇重叠度
+        words1_set = set(words1)
+        words2_set = set(words2)
+        if words1_set and words2_set:
+            intersection = len(words1_set & words2_set)
+            union = len(words1_set | words2_set)
+            jaccard = intersection / union if union > 0 else 0
+            if jaccard > 0:
+                return 0.6 + jaccard * 0.3
+        
+        # 字符相似度
+        char_sim = self.char_similarity(label1, label2)
+        
+        # 特殊规则匹配
+        similarity_score = self.rule_based_similarity(label1, label2)
+        if similarity_score > 0:
+            return max(similarity_score, char_sim)
+        
+        return char_sim
+    
+    def rule_based_similarity(self, label1, label2):
+        """基于规则的相似度判断"""
+        # 跑步相关规则
+        running_patterns = ['跑步', '跑', '晨跑', '夜跑']
+        morning_patterns = ['早晨', '早上', '晨', '上午']
+        
+        # 检查跑步+时间组合
+        has_running_1 = any(p in label1 for p in running_patterns)
+        has_running_2 = any(p in label2 for p in running_patterns)
+        has_morning_1 = any(p in label1 for p in morning_patterns)
+        has_morning_2 = any(p in label2 for p in morning_patterns)
+        
+        if has_running_1 and has_running_2:
+            if has_morning_1 and has_morning_2:
+                return 0.85  # 都是早晨跑步
+            return 0.75  # 都是跑步
+        
+        # 机场相关规则
+        airport_patterns = ['机场', '候机', '等待', '等候']
+        airport_count_1 = sum(1 for p in airport_patterns if p in label1)
+        airport_count_2 = sum(1 for p in airport_patterns if p in label2)
+        
+        if airport_count_1 >= 2 and airport_count_2 >= 2:
+            return 0.85
+        elif airport_count_1 >= 1 and airport_count_2 >= 1:
+            return 0.75
+        
+        # 购物相关规则
+        shopping_patterns = ['购物', '逛街', '商场', '买']
+        shopping_count_1 = sum(1 for p in shopping_patterns if p in label1)
+        shopping_count_2 = sum(1 for p in shopping_patterns if p in label2)
+        
+        if shopping_count_1 >= 1 and shopping_count_2 >= 1:
+            return 0.8
+        
+        # 观影相关规则
+        movie_patterns = ['电影', '观影', '看电影', '影院']
+        movie_count_1 = sum(1 for p in movie_patterns if p in label1)
+        movie_count_2 = sum(1 for p in movie_patterns if p in label2)
+        
+        if movie_count_1 >= 1 and movie_count_2 >= 1:
+            return 0.8
+        
+        # 咖啡相关规则
+        coffee_patterns = ['咖啡', '咖啡厅', '咖啡店']
+        coffee_count_1 = sum(1 for p in coffee_patterns if p in label1)
+        coffee_count_2 = sum(1 for p in coffee_patterns if p in label2)
+        
+        if coffee_count_1 >= 1 and coffee_count_2 >= 1:
+            return 0.8
+        
+        # 健身相关规则
+        fitness_patterns = ['健身', '运动', '锻炼', '健身房']
+        fitness_count_1 = sum(1 for p in fitness_patterns if p in label1)
+        fitness_count_2 = sum(1 for p in fitness_patterns if p in label2)
+        
+        if fitness_count_1 >= 1 and fitness_count_2 >= 1:
+            return 0.8
+        
+        return 0
+    
+    def compute_similarity_matrix(self, labels):
+        """计算相似度矩阵"""
+        n = len(labels)
+        similarity_matrix = np.zeros((n, n))
+        
+        for i in range(n):
+            for j in range(n):
+                if i == j:
+                    similarity_matrix[i][j] = 1.0
+                else:
+                    similarity_matrix[i][j] = self.semantic_similarity(labels[i], labels[j])
+        
+        return similarity_matrix
     
     def cluster_labels(self, labels):
-        """
-        对标签进行聚类
-        """
+        """聚类标签"""
         print(f"开始处理 {len(labels)} 个唯一标签...")
         
-        # 预处理
         cleaned_labels = self.preprocess_labels(labels)
         print(f"清洗后剩余 {len(cleaned_labels)} 个标签")
         
         if len(cleaned_labels) < 2:
             return {label: [label] for label in cleaned_labels}
         
-        # 特征提取
-        feature_matrix, vectorizer = self.extract_features(cleaned_labels)
-        
         # 计算相似度矩阵
-        similarity_matrix = self.compute_similarity_matrix(feature_matrix)
+        similarity_matrix = self.compute_similarity_matrix(cleaned_labels)
+        
+        # 转换为距离矩阵
+        distance_matrix = 1 - similarity_matrix
         
         # 层次聚类
-        # 使用距离阈值进行聚类
         distance_threshold = 1 - self.similarity_threshold
         clustering = AgglomerativeClustering(
             n_clusters=None,
             distance_threshold=distance_threshold,
-            linkage='average'
+            linkage='average',
+            metric='precomputed'
         )
         
-        cluster_labels = clustering.fit_predict(similarity_matrix)
+        cluster_labels = clustering.fit_predict(distance_matrix)
         
         # 组织聚类结果
-        clusters = {}
+        clusters = defaultdict(list)
         for i, cluster_id in enumerate(cluster_labels):
-            if cluster_id not in clusters:
-                clusters[cluster_id] = []
             clusters[cluster_id].append(cleaned_labels[i])
         
-        # 为每个聚类选择代表性标签（最短的或最常见的）
+        # 选择代表性标签（最短的）
         cluster_representatives = {}
         for cluster_id, cluster_members in clusters.items():
-            # 选择最短的标签作为代表
             representative = min(cluster_members, key=len)
             cluster_representatives[cluster_id] = representative
         
@@ -156,55 +253,25 @@ class LabelClusterer:
             for member in cluster_members:
                 label_mapping[member] = representative
         
-        self.label_clusters = clusters
+        self.label_clusters = dict(clusters)
         self.cluster_representatives = cluster_representatives
         
-        return label_mapping, clusters
-    
-    def visualize_clusters(self, clusters, top_n=20):
-        """
-        可视化聚类结果
-        """
-        # 统计每个聚类的大小
-        cluster_sizes = {f"聚类{i}({rep})": len(members) 
-                        for i, (cluster_id, members) in enumerate(clusters.items()) 
-                        for rep in [self.cluster_representatives[cluster_id]]}
-        
-        # 只显示前N个最大的聚类
-        sorted_clusters = sorted(cluster_sizes.items(), key=lambda x: x[1], reverse=True)[:top_n]
-        
-        plt.figure(figsize=(12, 8))
-        names, sizes = zip(*sorted_clusters)
-        plt.barh(range(len(names)), sizes)
-        plt.yticks(range(len(names)), names)
-        plt.xlabel('聚类大小')
-        plt.title('标签聚类结果 (Top 20)')
-        plt.tight_layout()
-        plt.show()
-        
-        return sorted_clusters
+        return label_mapping, dict(clusters)
     
     def apply_clustering_to_dataframe(self, df, column_name='场景', new_column_name='标准化场景'):
-        """
-        将聚类结果应用到DataFrame
-        """
-        # 获取所有标签
+        """将聚类结果应用到DataFrame"""
         all_labels = df[column_name].dropna().astype(str).tolist()
-        
-        # 执行聚类
         label_mapping, clusters = self.cluster_labels(all_labels)
         
-        # 应用映射
-        df[new_column_name] = df[column_name].map(lambda x: label_mapping.get(str(x).strip(), str(x)) if pd.notna(x) else x)
+        df[new_column_name] = df[column_name].map(
+            lambda x: label_mapping.get(str(x).strip(), str(x)) if pd.notna(x) else x
+        )
         
         return df, label_mapping, clusters
 
-# 使用示例
+# 演示函数
 def demo_usage():
-    """
-    演示如何使用标签聚类器
-    """
-    # 创建示例数据
+    """演示使用"""
     sample_data = {
         '用户ID': range(1, 21),
         '场景': [
@@ -216,73 +283,60 @@ def demo_usage():
     }
     
     df = pd.DataFrame(sample_data)
-    print("原始数据:")
+    print("原始数据场景分布:")
     print(df['场景'].value_counts())
-    print("\n" + "="*50 + "\n")
+    print("\n" + "="*60 + "\n")
     
-    # 初始化聚类器 - 调整相似度阈值
-    clusterer = LabelClusterer(similarity_threshold=0.3)  # 降低阈值让更多标签聚类
+    # 使用改进的聚类器
+    clusterer = ImprovedLabelClusterer(similarity_threshold=0.4)
     
     # 执行聚类
     df_clustered, label_mapping, clusters = clusterer.apply_clustering_to_dataframe(df)
     
-    # 显示结果
-    print("聚类后的数据:")
+    print("聚类后的场景分布:")
     print(df_clustered['标准化场景'].value_counts())
-    print("\n" + "="*50 + "\n")
+    print("\n" + "="*60 + "\n")
     
     print("标签映射关系:")
     for original, standardized in sorted(label_mapping.items()):
         if original != standardized:
-            print(f"{original} -> {standardized}")
-    
-    print("\n" + "="*50 + "\n")
+            print(f"  {original} -> {standardized}")
+    print()
     
     print("聚类详情:")
     for i, (cluster_id, members) in enumerate(clusters.items()):
-        if len(members) > 1:  # 只显示有多个成员的聚类
+        if len(members) > 1:
             representative = clusterer.cluster_representatives[cluster_id]
-            print(f"聚类 {i+1} (代表: {representative}): {members}")
+            print(f"  聚类 {i+1} (代表: {representative}): {members}")
     
-    # 额外调试信息：显示相似度矩阵
-    print("\n" + "="*30 + " 调试信息 " + "="*30)
+    # 显示相似度计算详情
+    print(f"\n" + "="*30 + " 相似度详情 " + "="*30)
     unique_labels = list(set(df['场景'].tolist()))
     cleaned_labels = clusterer.preprocess_labels(unique_labels)
-    if len(cleaned_labels) > 1:
-        feature_matrix, _ = clusterer.extract_features(cleaned_labels)
-        similarity_matrix = clusterer.compute_similarity_matrix(feature_matrix)
-        
-        print(f"\n相似度矩阵 (阈值: {clusterer.similarity_threshold}):")
-        print("标签索引:", {i: label for i, label in enumerate(cleaned_labels)})
-        
-        # 显示高相似度的标签对
-        high_sim_pairs = []
-        for i in range(len(cleaned_labels)):
-            for j in range(i+1, len(cleaned_labels)):
-                sim = similarity_matrix[i][j]
-                if sim > clusterer.similarity_threshold:
-                    high_sim_pairs.append((cleaned_labels[i], cleaned_labels[j], sim))
-        
-        print("\n高相似度标签对:")
-        for label1, label2, sim in sorted(high_sim_pairs, key=lambda x: x[2], reverse=True):
-            print(f"{label1} <-> {label2}: {sim:.3f}")
+    
+    print("高相似度标签对:")
+    similarity_matrix = clusterer.compute_similarity_matrix(cleaned_labels)
+    high_sim_pairs = []
+    
+    for i in range(len(cleaned_labels)):
+        for j in range(i+1, len(cleaned_labels)):
+            sim = similarity_matrix[i][j]
+            if sim >= clusterer.similarity_threshold:
+                high_sim_pairs.append((cleaned_labels[i], cleaned_labels[j], sim))
+    
+    for label1, label2, sim in sorted(high_sim_pairs, key=lambda x: x[2], reverse=True):
+        print(f"  {label1} <-> {label2}: {sim:.3f}")
     
     return df_clustered, label_mapping, clusters
 
-# 主函数：处理实际CSV文件
-def process_csv_file(file_path, column_name='场景', similarity_threshold=0.6):
-    """
-    处理实际的CSV文件
-    """
-    # 读取数据
+# 处理CSV文件的函数
+def process_csv_file(file_path, column_name='场景', similarity_threshold=0.4):
+    """处理实际的CSV文件"""
     df = pd.read_csv(file_path, encoding='utf-8')
     print(f"读取到 {len(df)} 行数据")
     print(f"场景列有 {df[column_name].nunique()} 个唯一值")
     
-    # 初始化聚类器
-    clusterer = LabelClusterer(similarity_threshold=similarity_threshold)
-    
-    # 执行聚类
+    clusterer = ImprovedLabelClusterer(similarity_threshold=similarity_threshold)
     df_clustered, label_mapping, clusters = clusterer.apply_clustering_to_dataframe(df, column_name)
     
     # 保存结果
@@ -294,7 +348,7 @@ def process_csv_file(file_path, column_name='场景', similarity_threshold=0.6):
     with open(mapping_file, 'w', encoding='utf-8') as f:
         f.write("标签映射关系:\n")
         f.write("="*50 + "\n")
-        for original, standardized in label_mapping.items():
+        for original, standardized in sorted(label_mapping.items()):
             if original != standardized:
                 f.write(f"{original} -> {standardized}\n")
         
@@ -314,14 +368,10 @@ def process_csv_file(file_path, column_name='场景', similarity_threshold=0.6):
     return df_clustered, label_mapping, clusters
 
 if __name__ == "__main__":
-    # 运行演示
-    print("=== 演示模式 ===")
+    print("=== 改进版语义聚类演示 ===")
     demo_usage()
     
-    print("\n\n=== 使用说明 ===")
-    print("处理你的CSV文件，请使用:")
-    print("df, mapping, clusters = process_csv_file('your_file.csv', column_name='场景', similarity_threshold=0.6)")
-    print("\n参数说明:")
-    print("- file_path: CSV文件路径")
-    print("- column_name: 要聚类的列名（默认'场景'）")
-    print("- similarity_threshold: 相似度阈值（0-1，默认0.6，越高越严格）")
+    print(f"\n{'='*80}")
+    print("使用说明:")
+    print("process_csv_file('your_file.csv', column_name='场景', similarity_threshold=0.4)")
+    print("- similarity_threshold: 建议0.3-0.5，越低聚类越宽松")
