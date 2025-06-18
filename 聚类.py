@@ -27,7 +27,7 @@ print("文本向量化完成")
 # 第一阶段：初步聚类
 clustering = AgglomerativeClustering(
     n_clusters=None,
-    affinity='cosine',
+    metric='cosine',
     linkage='average',
     distance_threshold=1-CLUSTER_SIMILARITY  # 距离阈值=1-相似度
 )
