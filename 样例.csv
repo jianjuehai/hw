@@ -1,3 +1,7 @@
-date,motionstate,wificonnectedstate,bluetoothconnectedstate,unionpreserviceusages,unionpostserviceusages,unionfutureserviceusages,hwpoiinfo,serviceusage
-2025/4/27,still,1,1,[],"[""com.doudoubird.calculation,,,,,,,,[\""1c04a0bda1b33977\""],0,1,15941,0,,,1737863889296,,,0,0,,-1,,null,"",""com.doudoubird.calculation,,,,,,,,[\""1c04a0bda1b33977\""],0,1,5727,0,,,1737864036628,,,0,0,,-1,,null,"",""com.huawei.contacts,,,,,,,,[\""dfe85a79c9f5badf\""],1,1,1418,0,,,1737864043584,,,0,0,,-1,,null,"",""com.android.incallui,,,,,,,,[\""a782743c3bff24dc\""],0,1,25269,0,,,1737864045002,,,0,0,,-1,,null,"",""com.huawei.contacts,,,,,,,,[\""dfe85a79c9f5badf\""],1,1,27072,0,,,1737864070271,,,0,0,,-1,,null,"",""com.huawei.contacts,,,,,,,,[\""dfe85a79c9f5badf\""],1,1,2455,0,,,1737864099909,,,0,0,,-1,,null,"",""com.android.incallui,,,,,,,,[\""a782743c3bff24dc\""],0,1,45931,0,,,1737864102364,,,0,0,,-1,,null,""]","[""com.android.incallui,,,,,,,,[\""a782743c3bff24dc\""],0,1,353441,0,,,1737863420707,,,0,0,,-1,,null,"",""com.tencent.qqmusic,,,,,,,,[\""36b63883802a4afa\""],0,1,2377,0,,,1737863774148,,,0,0,,-1,,null,"",""com.tencent.qqmusic,,,,,,,,[\""36b63883802a4afa\""],0,1,3574,0,,,1737863779485,,,0,0,,-1,,null,"",""com.doudoubird.calculation,,,,,,,,[\""1c04a0bda1b33977\""],0,1,94936,0,,,1737863787384,,,0,0,,-1,,null,""]",,"com.huawei.contacts,,,,,,,,[""dfe85a79c9f5badf""],1,1,32734,0,,,1737864160262,,,0,0,,-1,,null,"
-1111
+time,text,udid
+2026/01/07 07:09,时间：2026/01/07 07:09周三上午，工作日，城市：西安市，POI：医疗诊所、店铺，Wifi已连接，应用记录：无,00009be2-c39b-87b9-e190-a8dd7fe48e98
+2026/01/07 08:18,时间：2026/01/07 08:18周三上午，工作日，城市：西安市，前69分钟从西安市市内低速移动，Wifi未连接，应用记录：微信(聊天)共16秒，交互1次；淘宝(商城)共18秒，交互1次,00009be2-c39b-87b9-e190-a8dd7fe48e98
+
+
+
+
